@@ -13,7 +13,7 @@
 # limitations under the License.
 
 param="model_item=meta-llama-Llama-2-70b_pretrain_dy2st "
-param+="run_mode=DP1_MP4_PP8_VPP5 "
+param+="run_mode=DP1_MP8_PP4_VPP5 "
 param+="device_num=N4C32 "
 param+="global_batch_size=32 "
 param+="nnodes=4 "

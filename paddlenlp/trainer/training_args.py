@@ -293,6 +293,7 @@ class TrainingArguments:
               enable_stage1_allgather_overlap, overlap stage1 V2 allgather with next step forward computation. There are some constraints for the overlap, such as the logging_step should be bigger than 1 for allgather overlap forward compute and no other sync could be called during the training for allgather overlap.
               disable_stage1_reduce_avg, replace reduce_avg with original reduce_sum+scale in stage1, which can be used for accuracy verification.
               enable_release_grads, reduce peak memory usage by releasing gradients after each iteration. The creation of gradients will be postponed until backward propagation of the next iteration.
+              enable_fuse_optimizer_states, fuse optimizer states to a single storage.
         recompute (`bool`, *optional*, defaults to `False`):
             Recompute the forward pass to calculate gradients. Used for saving memory.
             Only support for networks with transformer blocks.
@@ -1412,10 +1413,11 @@ class TrainingArguments:
                                 "enable_stage1_broadcast_overlap",
                                 "enable_stage1_allgather_overlap",
                                 "enable_release_grads",
+                                "enable_fuse_optimizer_states",
                             ]:
                                 raise ValueError(
-                                    f"Found unknown pipeline mode config {x}, "
-                                    f"accpet config is enable_stage1_tensor_fusion, enable_stage1_overlap, enable_stage2_overlap, split_param, disable_stage1_reduce_avg, enable_stage1_broadcast_overlap, enable_stage1_allgather_overlap."
+                                    f"Found unknown sharding mode config {x}, "
+                                    f"accpet config is enable_stage1_tensor_fusion, enable_stage1_overlap, enable_stage2_overlap, split_param, disable_stage1_reduce_avg, enable_stage1_broadcast_overlap, enable_stage1_allgather_overlap, enable_release_grads, enable_fuse_optimizer_states."
                                 )
                     if "disable_stage1_reduce_avg" in sharding_parallel_config:
                         assert self.sharding == [
@@ -1440,6 +1442,9 @@ class TrainingArguments:
 
                         if "enable_release_grads" in sharding_parallel_config:
                             strategy.hybrid_configs["sharding_configs"].release_gradients = True
+
+                        if "enable_fuse_optimizer_states" in sharding_parallel_config:
+                            strategy.hybrid_configs["sharding_configs"].enable_fuse_optimizer_states = True
 
                         if self.pipeline_parallel_degree == 1:
                             strategy.hybrid_configs["sharding_configs"].tensor_fusion = (
